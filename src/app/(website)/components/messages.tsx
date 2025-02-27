@@ -1,83 +1,140 @@
-import React, { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-import { useSession } from "next-auth/react";
-import ChatRoom from './chatroom';
-const socket = io('https://node-backend-ehsw.onrender.com');  // Use HTTPS for secure connection
+import React, { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 
-// next-auth.d.ts or your custom type declaration file
-import NextAuth, { DefaultSession } from "next-auth"
+const socket = io("https://node-backend-ehsw.onrender.com");
 
-declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
-    user: {
-      /** The user's postal address. */
-      fullName: string
-    } & DefaultSession["user"]
-  }
-}
+const VideoCall = () => {
+  const [roomId, setRoomId] = useState("room1"); // Example roomId
+  const [isCalling, setIsCalling] = useState(false);
+  const [isReceivingCall, setIsReceivingCall] = useState(false);
 
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-
-const ChatComponent = () => {
-  const [roomId, setRoomId] = useState<string>('room1');  // Room ID
-  const [message, setMessage] = useState('');  // Message input state
-  const [messages, setMessages] = useState<any[]>([]);  // List of messages
-  const { data: session } = useSession();  // Get session data from NextAuth
-  console.log(session?.user);
-
-  // Get user ID from session
-  const userId = session?.user?.fullName || 'defaultUser';  // Default to 'defaultUser' if no ID is available
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const localStream = useRef<MediaStream | null>(null);
+  const remoteStream = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (session) {
-      // Emit user ID to the backend as soon as the session is available
-      socket.emit('set_user_id', userId);
-    }
+    // Connect to the room
+    socket.emit("join_room", roomId);
 
-    socket.emit('join_room', roomId);  // Join the room
-    console.log(`${userId} joined room: ${roomId}`);
+    // Get user media (video/audio stream)
+    const getUserMedia = async () => {
+      try {
+        // Request video and audio permission
+        localStream.current = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
 
-    // Listen for messages in the room
-    socket.on('receive_message', (data: { userId: string; message: string }) => {
-      setMessages((prevMessages) => [...prevMessages, data]);  // Update the messages state
-    });
-
-    // Cleanup when component unmounts
-    return () => {
-      socket.off('receive_message');
+        // Check if the video and audio tracks are available
+        if (localStream.current) {
+          console.log("Local stream obtained");
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = localStream.current;
+          }
+        }
+      } catch (err) {
+        console.error("Error accessing media devices:", err);
+        alert("Could not access camera and/or microphone.");
+      }
     };
-  }, [roomId, session, userId]);
 
-  const handleSendMessage = () => {
-    if (message.trim() !== '') {
-      // Emit message to the room with userId and message
-      socket.emit('send_message', roomId, message);
-      setMessage('');  // Clear input field
+    getUserMedia();
+
+    // Listen for incoming calls (offer)
+    socket.on("receive_offer", handleReceiveOffer);
+    socket.on("receive_answer", handleReceiveAnswer);
+    socket.on("receive_ice_candidate", handleReceiveICECandidate);
+
+    return () => {
+      socket.off("receive_offer", handleReceiveOffer);
+      socket.off("receive_answer", handleReceiveAnswer);
+      socket.off("receive_ice_candidate", handleReceiveICECandidate);
+    };
+  }, [roomId]);
+
+  const createPeerConnection = () => {
+    peerConnection.current = new RTCPeerConnection();
+
+    // Add local stream to peer connection
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => {
+        peerConnection.current?.addTrack(track, localStream.current!); // Non-null assertion here
+      });
     }
+    
+
+    // Handle remote stream
+    peerConnection.current.ontrack = (event) => {
+      remoteStream.current = event.streams[0];
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remoteStream.current;
+      }
+    };
+
+    // ICE Candidate handling
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("send_ice_candidate", event.candidate, roomId);
+      }
+    };
   };
 
-  const handleChangeRoom = (newRoomId: string) => {
-    // Leave the previous room and join a new one
-    socket.emit('leave_room', roomId); // Leave the current room
-    setRoomId(newRoomId); // Change the room
-    socket.emit('join_room', newRoomId); // Join the new room
+  // Handle incoming offer
+  const handleReceiveOffer = async (offer: any, senderId: string) => {
+    setIsReceivingCall(true);
+    createPeerConnection();
+    await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(offer));
+
+    const answer = await peerConnection.current?.createAnswer();
+    await peerConnection.current?.setLocalDescription(answer as RTCSessionDescription);
+
+    socket.emit("send_answer", answer, roomId); // Send the answer back to the offerer
+  };
+
+  // Handle incoming answer
+  const handleReceiveAnswer = (answer: any) => {
+    peerConnection.current?.setRemoteDescription(new RTCSessionDescription(answer));
+  };
+
+  // Handle incoming ICE candidate
+  const handleReceiveICECandidate = (candidate: RTCIceCandidate) => {
+    peerConnection.current?.addIceCandidate(new RTCIceCandidate(candidate));
+  };
+
+  // Start a call (create offer)
+  const handleCall = async () => {
+    createPeerConnection();
+    const offer = await peerConnection.current?.createOffer();
+    await peerConnection.current?.setLocalDescription(offer as RTCSessionDescription);
+
+    socket.emit("send_offer", offer, roomId); // Send the offer to the room
+    setIsCalling(true);
   };
 
   return (
     <div>
-      <ChatRoom
-        roomId={roomId}
-        messages={messages}
-        message={message}
-        setMessage={setMessage}
-        handleSendMessage={handleSendMessage}
-        currentUser={userId}
-      />
+      <h2>Room: {roomId}</h2>
+
+      <div>
+        <video ref={localVideoRef} autoPlay muted width="300" />
+        <video ref={remoteVideoRef} autoPlay width="300" />
+      </div>
+
+      {!isCalling && !isReceivingCall && (
+        <button onClick={handleCall}>Start Call</button>
+      )}
+
+      {isReceivingCall && !isCalling && (
+        <div>
+          <p>Incoming call...</p>
+          <button onClick={handleCall}>Answer</button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ChatComponent;
+export default VideoCall;
