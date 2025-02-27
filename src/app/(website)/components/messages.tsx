@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useSession } from "next-auth/react";
 import ChatRoom from './chatroom';
-const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);  // Ensure it matches the protocol
+const socket = io('https://node-backend-ehsw.onrender.com');  // Use HTTPS for secure connection
+
 // next-auth.d.ts or your custom type declaration file
 import NextAuth, { DefaultSession } from "next-auth"
 
