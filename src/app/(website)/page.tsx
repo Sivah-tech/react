@@ -77,6 +77,7 @@ const FirstSection: React.FC = () => {
     setSelectedOption(e.target.value);
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
@@ -88,12 +89,14 @@ const FirstSection: React.FC = () => {
       // Pass only the searchQuery to getSearchSuggestions, not the entire payload
       const response = await getSearchSuggestions(searchQuery);  // Pass just the search query string
       console.log('Form submitted successfully:', response);
-      // window.location.href = "/productpage"
+      
+      // Navigate to the product page on success
       router.push('/productpage');
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
+  
   
 
 
@@ -128,17 +131,18 @@ const FirstSection: React.FC = () => {
               {isLoading && <p>Loading...</p>}
               {error && <p className="text-red-500">{error}</p>}
               <ul className="mt-2">
-                  {suggestions.length > 0 &&
-                    suggestions.map((suggestion, index) => (
-                      <li
-                        key={index}
-                        className="cursor-pointer hover:bg-gray-200 p-2"
-                        onClick={() => handleSuggestionClick(suggestion)} // Pass the string directly
-                      >
-                        {suggestion}  {/* Display the suggestion text */}
-                      </li>
-                    ))}
-                </ul>
+                {suggestions.length > 0 &&
+                  suggestions.map((suggestion:any, index) => (
+                    <li
+                      key={index}
+                      className="cursor-pointer hover:bg-gray-200 p-2"
+                      onClick={() => handleSuggestionClick(suggestion.text)} // When a suggestion is clicked
+                    >
+                      {suggestion.text}
+                    </li>
+                  ))}
+              </ul>
+
 
             </div>
 
