@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useSession } from "next-auth/react";
 import ChatRoom from './chatroom';
-const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);  // Connect to the Socket.IO server
+const socket = io('http://192.168.1.42:8000');  // Connect to the Socket.IO server
 // next-auth.d.ts or your custom type declaration file
 import NextAuth, { DefaultSession } from "next-auth"
 
