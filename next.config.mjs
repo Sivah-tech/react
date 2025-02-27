@@ -21,7 +21,17 @@ const nextConfig = {
         {
           protocol: 'https',
           hostname: 'img.youtube.com',
+        },  
+        {
+          protocol: 'https',
+          hostname: 'thewebmax.org',
+        },
+        {
+          protocol: 'https',
+          hostname: 'randomuser.me',
         }
+
+
       ],
     },
   };

@@ -11,6 +11,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials: any) => {
         if (credentials.username) {
+          // console.log("credentials",credentials)
           return {
             username: credentials.username,
             fullName: credentials.fullName,
@@ -27,6 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     jwt({ token, user, account, session, profile }) {
       if (user) {
+        // console.log("user",user)
         token.id = user.id;
         token.username = (user as any).username;
         token.fullName = (user as any).fullName;
@@ -38,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session({ session, token }) {
       
       if (session.user) {
+        // console.log("session",session)
         session.user.id = token.id as string;
         (session as any).user.fullName = token.fullName;
         (session as any).user.email = token.username;

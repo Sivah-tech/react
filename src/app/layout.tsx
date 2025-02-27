@@ -37,7 +37,7 @@ const RalewayBold = localFont({
 })   
 
 export const metadata: Metadata = {
-  title: "Auspicious Soft",
+  title: "React test",
   description: " ",
 };
 
