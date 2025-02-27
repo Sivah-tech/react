@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://192.168.1.42:8000");
+const socket = io("https://node-backend-ehsw.onrender.com");
 
 const VideoCall = () => {
   const [roomId, setRoomId] = useState("room1"); // Example roomId
