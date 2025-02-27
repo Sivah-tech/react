@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("https://node-backend-ehsw.onrender.com");
+const socket = io("http://192.168.1.42:8000");
 
 const VideoCall = () => {
   const [roomId, setRoomId] = useState("room1"); // Example roomId
@@ -14,6 +14,29 @@ const VideoCall = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteStream = useRef<MediaStream | null>(null);
+
+  // useCallback to avoid the ESLint warning for missing dependency
+  const handleReceiveOffer = useCallback(
+    async (offer: any, senderId: string) => {
+      setIsReceivingCall(true);
+      createPeerConnection();
+      await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(offer));
+
+      const answer = await peerConnection.current?.createAnswer();
+      await peerConnection.current?.setLocalDescription(answer as RTCSessionDescription);
+
+      socket.emit("send_answer", answer, roomId); // Send the answer back to the offerer
+    },
+    [roomId] // Dependency on roomId
+  );
+
+  const handleReceiveAnswer = (answer: any) => {
+    peerConnection.current?.setRemoteDescription(new RTCSessionDescription(answer));
+  };
+
+  const handleReceiveICECandidate = (candidate: RTCIceCandidate) => {
+    peerConnection.current?.addIceCandidate(new RTCIceCandidate(candidate));
+  };
 
   useEffect(() => {
     // Connect to the room
@@ -53,15 +76,17 @@ const VideoCall = () => {
       socket.off("receive_answer", handleReceiveAnswer);
       socket.off("receive_ice_candidate", handleReceiveICECandidate);
     };
-  }, [roomId]);
+  }, [handleReceiveOffer, roomId]); // Added handleReceiveOffer and roomId to the dependency array
 
   const createPeerConnection = () => {
     peerConnection.current = new RTCPeerConnection();
 
     // Add local stream to peer connection
-    localStream.current?.getTracks().forEach((track) => {
-      peerConnection.current?.addTrack(track, localStream.current);
-    });
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => {
+        peerConnection.current?.addTrack(track, localStream.current);
+      });
+    }
 
     // Handle remote stream
     peerConnection.current.ontrack = (event) => {
@@ -77,28 +102,6 @@ const VideoCall = () => {
         socket.emit("send_ice_candidate", event.candidate, roomId);
       }
     };
-  };
-
-  // Handle incoming offer
-  const handleReceiveOffer = async (offer: any, senderId: string) => {
-    setIsReceivingCall(true);
-    createPeerConnection();
-    await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(offer));
-
-    const answer = await peerConnection.current?.createAnswer();
-    await peerConnection.current?.setLocalDescription(answer as RTCSessionDescription);
-
-    socket.emit("send_answer", answer, roomId); // Send the answer back to the offerer
-  };
-
-  // Handle incoming answer
-  const handleReceiveAnswer = (answer: any) => {
-    peerConnection.current?.setRemoteDescription(new RTCSessionDescription(answer));
-  };
-
-  // Handle incoming ICE candidate
-  const handleReceiveICECandidate = (candidate: RTCIceCandidate) => {
-    peerConnection.current?.addIceCandidate(new RTCIceCandidate(candidate));
   };
 
   // Start a call (create offer)
