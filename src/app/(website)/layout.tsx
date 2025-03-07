@@ -2,10 +2,8 @@
 import "@/app/globals.css";
 import { Antic_Didone } from "next/font/google";
 import Header from "@/app/(website)/components/Header";
-import localFont from 'next/font/local'
+import localFont from 'next/font/local';
 import { usePathname } from 'next/navigation';
-
-
 
 export default function RootLayout({
   children,
@@ -13,14 +11,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const hideFooterRoutes = ['/login', '/forgotpassword', '/resetpassword', '/signup', '/admin'];
+  const hideHeaderRoutes = ['/login', '/forgotpassword', '/resetpassword', '/signup', '/admin', '/otp'];
 
   return (
     <html lang="en">
       <body className={`test`}>
-        <Header />
+        {/* Conditionally render the Header component */}
+        {!hideHeaderRoutes.includes(pathname) && <Header />}
         {children}
-        {!hideFooterRoutes.includes(pathname)}
       </body>
     </html>
   );

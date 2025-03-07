@@ -1,8 +1,8 @@
 "use client";
 import Link from 'next/link';
 import { useState } from 'react';
-import logo from "@/assets/logo.png";
 import Image from "next/image";
+
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation'; // Import useRouter outside the function
 
@@ -38,7 +38,7 @@ const Header = () => {
           </Link>
         </div>
         <ul className={`nav-menu ${isToggleOpen ? 'open' : ''}`}>
-          <button className="close-btn lg:hidden" onClick={handleToggleClose}></button>
+          <button className="close-btn lg:hidden" onClick={handleToggleClose}>close</button>
           <li>
             <Link href="/" className="nav-menu-list">Home</Link>
           </li>
@@ -47,6 +47,9 @@ const Header = () => {
           </li>
           <li>
             <Link href="/faq" className="nav-menu-list">FAQ</Link>
+          </li>
+          <li>
+            <Link href="/productpage" className="nav-menu-list">product page</Link>
           </li>
 
           {/* Conditionally render the Login or Logout button */}
@@ -63,7 +66,7 @@ const Header = () => {
           )}
         </ul>
 
-        <p className="menuToggleBtn lg:hidden" onClick={handleToggleOpen}></p>
+        <p className="menuToggleBtn lg:hidden" onClick={handleToggleOpen}>open</p>
       </div>
     </div>
   );

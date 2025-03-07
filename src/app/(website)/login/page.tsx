@@ -24,8 +24,10 @@ const Page: React.FC = () => {
     if (session) {
         console.log("session",session)
       if ((session as any)?.user?.role == "admin") {
-        router.push('/productpage');
-      } else {
+        router.push('/admin/dashboard');
+      }else if ((session as any)?.user?.role == "admin") {
+        router.push('/user/dashboard');
+      }else {
         router.push('/');
       }
     }
@@ -55,8 +57,14 @@ const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
   
         if (response?.success) {
           toast.success('Logged in successfully');
-           router.push('/productpage');
-        } else {
+          if (response?.data?.user?.role === 'user') {
+            window.location.href = '/user/dashboard';
+          }
+          else {
+            window.location.href = '/admin/dashboard';
+          }
+        }
+         else {
           toast.error(
             Array.isArray(response?.message)
               ? response?.message[0].message

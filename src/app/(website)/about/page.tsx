@@ -23,24 +23,25 @@ const dataSlider = [
   },
 ];
 
-const Page: React.FC = () => {
 
+
+const Page: React.FC = () => {
   return (
-    <div className="container">
+    <div className="container mx-auto px-4 py-8">
       <div className="class-body">
         <section className="about-section">
-          <div className="container">
-            <div className="row clearfix">
+          <div className="container mx-auto">
+            <div className="flex flex-wrap">
               {/* Content Column */}
-              <div className="content-column col-md-6 col-sm-12 col-xs-12">
+              <div className="content-column w-full md:w-1/2 p-4">
                 <div className="inner-column">
-                  <div className="sec-title">
-                    <div className="title">About Us</div>
-                    <h2>
+                  <div className="sec-title mb-6">
+                    <div className="title text-2xl font-bold">About Us</div>
+                    <h2 className="text-4xl font-semibold mt-2">
                       We Are The Leader In <br /> The Interiores
                     </h2>
                   </div>
-                  <div className="text">
+                  <div className="text mb-6 text-lg text-gray-700">
                     Lorem Ipsum is simply dummy text of the printing and
                     typesetting industry. Lorem Ipsum has been the industry
                     standard dummy text ever since the 1500s, when an unknown
@@ -49,29 +50,25 @@ const Page: React.FC = () => {
                   </div>
                   <div className="email">
                     Request Quote:{" "}
-                    <span className="theme_color">freequote@gmail.com</span>
+                    <span className="text-themeColor">freequote@gmail.com</span>
                   </div>
-                 
                 </div>
               </div>
 
               {/* Image Column */}
-              <div className="image-column col-md-6 col-sm-12 col-xs-12">
-                <div
-                  className="inner-column"
-                  data-wow-delay="0ms"
-                  data-wow-duration="1500ms"
-                >
-                  <div className="image">
+              <div className="image-column w-full md:w-1/2 p-4">
+                <div className="inner-column">
+                  <div className="image relative">
                     <Image
                       src="https://thewebmax.org/react/jobzilla/assets/images/gir-large.png"
                       alt="About Us"
                       width={300}   // Set an appropriate width
-                height={300}  // Set an appropriate height
+                      height={300}  // Set an appropriate height
                     />
-                    <div className="overlay-box">
-                      <div className="year-box">
-                        <span className="number">5</span>Years <br /> Experience <br /> Working
+                    <div className="overlay-box absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+                      <div className="year-box text-white text-center p-4 bg-opacity-70">
+                        <span className="number text-4xl font-bold">5</span>
+                        <p className="text-lg">Years <br /> Experience <br /> Working</p>
                       </div>
                     </div>
                   </div>
@@ -86,3 +83,4 @@ const Page: React.FC = () => {
 };
 
 export default Page;
+

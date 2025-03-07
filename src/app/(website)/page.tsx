@@ -7,9 +7,11 @@ import { getSearchSuggestions, submitForm } from "@/services/admin/admin-service
 import CardSlider from "@/app/(website)/components/Cardslider";
 import CounterComponent from "@/app/(website)/components/counter";
 import KCounterComponent from "@/app/(website)/components/kcounter";
+import Footer from "@/app/(website)/components/footer";
 import BlogList from "./components/blogs";
 import { useRouter } from 'next/navigation';
 import TestimonialSwiper from "./components/testimonial";
+import Contactus from "./components/contactus";
 
 
 export default function Home() {
@@ -21,6 +23,7 @@ export default function Home() {
       <ThirdSection />
       <FourthSection />
       <FifthSection />
+      <SixthSection />
       <LastSection />
       
     </div>
@@ -210,7 +213,7 @@ const FirstSection: React.FC = () => {
 
 
             <div className="counters mt-2 ps-2 ">
-              <CounterComponent targetCount={5000} />
+              <KCounterComponent targetCount={5000} />
             </div>
           </div>
           </div>
@@ -355,45 +358,59 @@ const FifthSection: React.FC = () => {
 
 
 
-const LastSection: React.FC = () => {
+const SixthSection: React.FC = () => {
   return (
-    <div className="last-section">
-      <div className="map-container">
-        <div className="mapouter">
-          <div className="gmap_canvas">
-            <iframe
-              className="gmap_iframe"
-              title="Google Map"
+    // <div className="last-section">
+    //   <div className="map-container">
+    //     <div className="mapouter">
+    //       <div className="gmap_canvas">
+    //         <iframe
+    //           className="gmap_iframe"
+    //           title="Google Map"
 
-              src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=Elante mall&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
-            ></iframe>
-          </div>
-        </div>
-        <style>
-          {`
-          .mapouter {
-            position: relative;
-            text-align: right;
-            width: 600px;
-            height: 400px;
-          }
-          .gmap_canvas {
-            overflow: hidden;
-            background: none !important;
-            width: 600px;
-            height: 400px;
-          }
-          .gmap_iframe {
-            width: 600px !important;
-            height: 400px !important;
-          }
-        `}
-        </style>
-      </div>
+    //           src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=Elante mall&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
+    //         ></iframe>
+    //       </div>
+    //     </div>
+    //     <style>
+    //       {`
+    //       .mapouter {
+    //         position: relative;
+    //         text-align: right;
+    //         width: 600px;
+    //         height: 400px;
+    //       }
+    //       .gmap_canvas {
+    //         overflow: hidden;
+    //         background: none !important;
+    //         width: 600px;
+    //         height: 400px;
+    //       }
+    //       .gmap_iframe {
+    //         width: 600px !important;
+    //         height: 400px !important;
+    //       }
+    //     `}
+    //     </style>
+    //   </div>
+    // </div>
+
+  <div className="sixth-section">
+    <Contactus />
     </div>
 
 
 
+  );
+};
+
+
+const LastSection: React.FC = () => {
+  return (
+
+  <div className="last-section">
+    <Footer />
+    </div>
 
 
 

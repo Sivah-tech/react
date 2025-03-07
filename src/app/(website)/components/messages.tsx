@@ -1,140 +1,65 @@
-import React, { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
+// ChatComponent.tsx
 
-const socket = io("https://node-backend-ehsw.onrender.com");
+import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 
-const VideoCall = () => {
-  const [roomId, setRoomId] = useState("room1"); // Example roomId
-  const [isCalling, setIsCalling] = useState(false);
-  const [isReceivingCall, setIsReceivingCall] = useState(false);
+const socket = io('http://192.168.1.8:8000');  // Connect to the Socket.IO server
 
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+const ChatComponent = () => {
+  const [roomId, setRoomId] = useState<string>('room1');  // Room ID, you can change it dynamically
+  const [userId, setUserId] = useState<string>('user1'); // Example userId, could be from login
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<any[]>([]);
 
-  const peerConnection = useRef<RTCPeerConnection | null>(null);
-  const localStream = useRef<MediaStream | null>(null);
-  const remoteStream = useRef<MediaStream | null>(null);
-
+  // Join the room when the component mounts
   useEffect(() => {
-    // Connect to the room
-    socket.emit("join_room", roomId);
+    socket.emit('join_room', roomId);  // Join the room
+    console.log(`${userId} joined room: ${roomId}`);
 
-    // Get user media (video/audio stream)
-    const getUserMedia = async () => {
-      try {
-        // Request video and audio permission
-        localStream.current = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-
-        // Check if the video and audio tracks are available
-        if (localStream.current) {
-          console.log("Local stream obtained");
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = localStream.current;
-          }
-        }
-      } catch (err) {
-        console.error("Error accessing media devices:", err);
-        alert("Could not access camera and/or microphone.");
-      }
-    };
-
-    getUserMedia();
-
-    // Listen for incoming calls (offer)
-    socket.on("receive_offer", handleReceiveOffer);
-    socket.on("receive_answer", handleReceiveAnswer);
-    socket.on("receive_ice_candidate", handleReceiveICECandidate);
+    // Listen for messages in the room
+    socket.on('receive_message', (data: { userId: string; message: string }) => {
+      setMessages((prevMessages) => [...prevMessages, data]);  // Update the messages state
+    });
 
     return () => {
-      socket.off("receive_offer", handleReceiveOffer);
-      socket.off("receive_answer", handleReceiveAnswer);
-      socket.off("receive_ice_candidate", handleReceiveICECandidate);
+      socket.off('receive_message');  // Cleanup when component unmounts
     };
   }, [roomId]);
 
-  const createPeerConnection = () => {
-    peerConnection.current = new RTCPeerConnection();
-
-    // Add local stream to peer connection
-    if (localStream.current) {
-      localStream.current.getTracks().forEach((track) => {
-        peerConnection.current?.addTrack(track, localStream.current!); // Non-null assertion here
-      });
+  const handleSendMessage = () => {
+    if (message.trim() !== '') {
+      socket.emit('send_message', roomId, message);  // Emit message to the room
+      setMessage('');  // Clear input field
     }
-    
-
-    // Handle remote stream
-    peerConnection.current.ontrack = (event) => {
-      remoteStream.current = event.streams[0];
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = remoteStream.current;
-      }
-    };
-
-    // ICE Candidate handling
-    peerConnection.current.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("send_ice_candidate", event.candidate, roomId);
-      }
-    };
   };
 
-  // Handle incoming offer
-  const handleReceiveOffer = async (offer: any, senderId: string) => {
-    setIsReceivingCall(true);
-    createPeerConnection();
-    await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(offer));
-
-    const answer = await peerConnection.current?.createAnswer();
-    await peerConnection.current?.setLocalDescription(answer as RTCSessionDescription);
-
-    socket.emit("send_answer", answer, roomId); // Send the answer back to the offerer
-  };
-
-  // Handle incoming answer
-  const handleReceiveAnswer = (answer: any) => {
-    peerConnection.current?.setRemoteDescription(new RTCSessionDescription(answer));
-  };
-
-  // Handle incoming ICE candidate
-  const handleReceiveICECandidate = (candidate: RTCIceCandidate) => {
-    peerConnection.current?.addIceCandidate(new RTCIceCandidate(candidate));
-  };
-
-  // Start a call (create offer)
-  const handleCall = async () => {
-    createPeerConnection();
-    const offer = await peerConnection.current?.createOffer();
-    await peerConnection.current?.setLocalDescription(offer as RTCSessionDescription);
-
-    socket.emit("send_offer", offer, roomId); // Send the offer to the room
-    setIsCalling(true);
+  const handleChangeRoom = (newRoomId: string) => {
+    // Leave the previous room and join a new one
+    socket.emit('leave_room', roomId); // Leave the current room
+    setRoomId(newRoomId); // Change the room
+    socket.emit('join_room', newRoomId); // Join the new room
   };
 
   return (
     <div>
-      <h2>Room: {roomId}</h2>
-
+      <h2>Chat Room: {roomId}</h2>
       <div>
-        <video ref={localVideoRef} autoPlay muted width="300" />
-        <video ref={remoteVideoRef} autoPlay width="300" />
+        {messages.map((msg, index) => (
+          <div key={index}>
+            <strong>{msg.userId}</strong>: {msg.message}
+          </div>
+        ))}
       </div>
-
-      {!isCalling && !isReceivingCall && (
-        <button onClick={handleCall}>Start Call</button>
-      )}
-
-      {isReceivingCall && !isCalling && (
-        <div>
-          <p>Incoming call...</p>
-          <button onClick={handleCall}>Answer</button>
-        </div>
-      )}
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
+      />
+      <button onClick={handleSendMessage}>Send</button>
+      <button onClick={() => handleChangeRoom('room2')}>Switch to Room 2</button>
     </div>
   );
 };
 
-export default VideoCall;
+export default ChatComponent;

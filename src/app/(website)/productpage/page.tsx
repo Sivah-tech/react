@@ -2,6 +2,7 @@
 
 import React from "react";
 import Messages from "@/app/(website)/components/messages";
+import ProductPage from "@/app/(website)/components/product";
 
 const styles = {
   titleTextColor: "blue",
@@ -14,13 +15,17 @@ const config = {
 
 const productComponent: React.FC = () => {
   return (
-    <div>
+    // <div>
       
-      {/* Add the Messages component here */}
-      <Messages />
+    //   {/* Add the Messages component here */}
+    //   <Messages />
 
-      {/* You can add other components like Pagination here */}
-      {/* <Pagination /> */}
+    //   {/* You can add other components like Pagination here */}
+    //   {/* <Pagination /> */}
+    // </div>
+
+      <div>
+      <ProductPage/>
     </div>
   );
 };
