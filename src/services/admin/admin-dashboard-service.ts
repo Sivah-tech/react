@@ -74,3 +74,4 @@ export const getSingleCategory = async (route: string) => {
   const axiosInstance = await getAxiosInstance(true);
   return axiosInstance.get(route);
 };
+

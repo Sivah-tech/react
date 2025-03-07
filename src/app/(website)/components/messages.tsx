@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 // ChatComponent.tsx
 
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+=======
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { io } from "socket.io-client";
+
+const socket = io("http://192.168.1.42:8000");
+>>>>>>> e60b61abfc6d1f8a29b97b491964dbd7d7f106fa
 
 const socket = io('http://192.168.1.8:8000');  // Connect to the Socket.IO server
 
@@ -11,7 +18,33 @@ const ChatComponent = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
 
+<<<<<<< HEAD
   // Join the room when the component mounts
+=======
+  // useCallback to avoid the ESLint warning for missing dependency
+  const handleReceiveOffer = useCallback(
+    async (offer: any, senderId: string) => {
+      setIsReceivingCall(true);
+      createPeerConnection();
+      await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(offer));
+
+      const answer = await peerConnection.current?.createAnswer();
+      await peerConnection.current?.setLocalDescription(answer as RTCSessionDescription);
+
+      socket.emit("send_answer", answer, roomId); // Send the answer back to the offerer
+    },
+    [roomId] // Dependency on roomId
+  );
+
+  const handleReceiveAnswer = (answer: any) => {
+    peerConnection.current?.setRemoteDescription(new RTCSessionDescription(answer));
+  };
+
+  const handleReceiveICECandidate = (candidate: RTCIceCandidate) => {
+    peerConnection.current?.addIceCandidate(new RTCIceCandidate(candidate));
+  };
+
+>>>>>>> e60b61abfc6d1f8a29b97b491964dbd7d7f106fa
   useEffect(() => {
     socket.emit('join_room', roomId);  // Join the room
     console.log(`${userId} joined room: ${roomId}`);
@@ -24,8 +57,9 @@ const ChatComponent = () => {
     return () => {
       socket.off('receive_message');  // Cleanup when component unmounts
     };
-  }, [roomId]);
+  }, [handleReceiveOffer, roomId]); // Added handleReceiveOffer and roomId to the dependency array
 
+<<<<<<< HEAD
   const handleSendMessage = () => {
     if (message.trim() !== '') {
       socket.emit('send_message', roomId, message);  // Emit message to the room
@@ -38,6 +72,42 @@ const ChatComponent = () => {
     socket.emit('leave_room', roomId); // Leave the current room
     setRoomId(newRoomId); // Change the room
     socket.emit('join_room', newRoomId); // Join the new room
+=======
+  const createPeerConnection = () => {
+    peerConnection.current = new RTCPeerConnection();
+
+    // Add local stream to peer connection
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => {
+        peerConnection.current?.addTrack(track, localStream.current);
+      });
+    }
+
+    // Handle remote stream
+    peerConnection.current.ontrack = (event) => {
+      remoteStream.current = event.streams[0];
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remoteStream.current;
+      }
+    };
+
+    // ICE Candidate handling
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("send_ice_candidate", event.candidate, roomId);
+      }
+    };
+  };
+
+  // Start a call (create offer)
+  const handleCall = async () => {
+    createPeerConnection();
+    const offer = await peerConnection.current?.createOffer();
+    await peerConnection.current?.setLocalDescription(offer as RTCSessionDescription);
+
+    socket.emit("send_offer", offer, roomId); // Send the offer to the room
+    setIsCalling(true);
+>>>>>>> e60b61abfc6d1f8a29b97b491964dbd7d7f106fa
   };
 
   return (

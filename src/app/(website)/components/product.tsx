@@ -38,7 +38,7 @@ const ProductPage: React.FC = () => {
 
         // Clear the products state to avoid appending data
         setProducts([]);
-
+        
 
         try {
           const response = await fetchProductsByCategory(selectedCategory); // Fetch products by category
