@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Messages from "@/app/(website)/components/messages";
 import ProductPage from "@/app/(website)/components/product";
 
 const styles = {
