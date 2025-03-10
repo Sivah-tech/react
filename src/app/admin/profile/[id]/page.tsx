@@ -6,8 +6,10 @@ import { getSingleUser, updateSingleUser } from "@/services/admin/admin-dashboar
 import useSWR from "swr";
 import { toast } from "sonner";
 import ReactLoading from "react-loading";
+import { useRouter } from 'next/navigation';
 
 const Page = () => {
+    const router = useRouter();
   const { id } = useParams();
   const { data, error, mutate, isLoading } = useSWR(`/admin/user/${id}`, getSingleUser);
   const customerData = data?.data?.data;
@@ -53,6 +55,7 @@ const Page = () => {
         if (response?.success) {
           toast.success("User details updated successfully", { position: "bottom-right" });
           mutate(); // Re-fetch updated data
+          router.push(`/admin/users`);
         } else {
           toast.error("Failed to update user data");
         }
