@@ -79,18 +79,14 @@ export const categorydata = async (query: string) => {
 };
 
 
+// Service for fetching search suggestions
 export const fetchProductsByCategory = async (categoryId: string) => {
   try {
-    // Make sure to append the categoryId in the URL as part of the endpoint
-    const response = await axiosInstance.get(`/admin/productbycategory/${categoryId}`, {
-      headers: {
-        'role': 'admin', // Include the role if necessary
-        'Authorization': `Bearer eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiN3g5RFVNVmFFVTZnaWFiMGwwT1dEdDRlNFNzUkhfY2J3TW9mMkV6RXl5Nm9uSzVvOHhTUFBCNzk5UlZvcW0ydjZ6Njc0a1FDdjlqb20yVDhTLWExZFEifQ..YryO-OaHHVH_FLqa57Im9Q.bF6clBadG6dHS9xDCRH7U7Epr-sNWwK5gKFUnIdQ0NJ0daTzqil3ruOFfmgb8e3g0A_HR7So9k0EoOtsO9RtK_mLDgDIYlN3Y4G8Q3ONewleT-Dr7GXXZcKUkjTtrz-4Od3wlk7VhoR3n50t74ditDPfnPFpwBf1zob_CktlV302WKhaSr6TbsW9bahumLIkQxIcWQW3KVicY08NCAZ7GLCAXSkJ-BEvE5MJk3DPS8HS87Uba1tyFguhk1N1dAcOl5_iVVE-OXJ2XoBYoPAQQZGOlXj3nL8_84jRt3IH3UNQqTgZ36KJJVZ9qcnrx2ES.CDOqfRBGonzhhEcjK70sB0SSzhpD8piEZs3_9q47g-Y`, // Include the authorization token
-      },
-    });
-    return response.data; // Return the response data directly
+    const response = await axiosInstance.get(`/productbycategory/${categoryId}`);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching products by category:", error);
-    throw new Error("Error fetching products by category");
+    throw new Error("Error fetching category");
   }
 };
+
+
