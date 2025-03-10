@@ -1,10 +1,10 @@
 import React, { ChangeEvent, FormEvent, useState, useTransition } from "react";
 import Modal from "react-modal";
 import Image from "next/image"; // Import Image for Next.js
-
 import { mutate } from "swr";
 import { addNewUser } from "@/services/admin/admin-dashboard-service";
 import { toast } from "sonner";
+import axios from "axios";
 
 interface AddNewClientOptions {
   isOpen: any;
@@ -34,29 +34,42 @@ const AddNewClient: React.FC<AddNewClientOptions> = ({ isOpen, onClose, mutate }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let updatedFormData = { ...formData }
+    let updatedFormData = { ...formData };
+  
     startTransition(async () => {
       try {
         const response = await addNewUser(`/admin/users/`, updatedFormData);
         
         // Check if the response indicates a successful operation
-        if (response?.success) {
+        if (response?.success === true) {
           onClose();        // Close the modal or whatever operation you perform after success
           mutate();         // Re-fetch or update the data
           toast.success(response?.message);  // Show the success message
+        } else if (response?.success === false) {
+          // Handle the case where success is false
+          if (response?.message === "Email already exists") {
+            toast.error("This email is already registered. Please try another one.");
+          } else {
+            toast.error(response?.message || "Failed to add User Data");
+          }
+          mutate();         // Re-fetch or update the data if needed
         } else {
-          // If the response is unsuccessful, show the error message
-          toast.error(response?.message || "Failed to add User Data");
+          // Handle unexpected success response
+          toast.error("Unexpected error occurred");
         }
       } catch (error) {
-        console.error("An error occurred", error);
-        toast.error("An error occurred");
+        // Axios error handling
+        if (axios.isAxiosError(error)) {
+          console.error("Axios Error:", error.response?.data);
+          toast.error(error.response?.data?.message || "An error occurred while processing your request.");
+        } else {
+          console.error("An unexpected error occurred", error);
+          toast.error("An unexpected error occurred");
+        }
       }
-      
-      
     });
   };
-
+  
 
   return (
     <Modal
